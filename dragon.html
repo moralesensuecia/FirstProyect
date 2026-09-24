@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Dragon Minesweeper 21x21</title>
+<style>
+  body{margin:0;background:#ff8c00;display:flex;justify-content:center;align-items:center;min-height:100vh;flex-direction:column;font-family:Arial Black;}
+  h1{color:#fff;text-shadow:3px 3px 0 #000;margin:10px}
+  #info{color:white;margin-bottom:10px;font-size:16px;background:black;padding:8px 15px;border-radius:20px}
+  #board{display:grid;grid-template-columns:repeat(21,28px);gap:2px;background:#000;padding:5px;border-radius:10px}
+.cell{width:28px;height:28px;background:#ffcc00;display:flex;justify-content:center;align-items:center;font-weight:900;font-size:14px;cursor:pointer;border-radius:4px}
+.cell.revealed{background:#fff7d6}
+.cell.mine{background:red!important}
+.n1{color:blue}.n2{color:green}.n3{color:red}.n4{color:darkblue}
+</style>
+</head>
+<body>
+<h1>🐉 DRAGON SWEEPER FIX 🐉</h1>
+<div id="info">Esferas: <span id="count">50</span> | Click derecho = 🚩</div>
+<div id="board"></div>
+<script>
+const SIZE=21, MINES=50;
+let board=[], gameOver=false, firstClick=true;
+const boardEl=document.getElementById('board');
+
+function init(){
+  board=[]; boardEl.innerHTML=''; gameOver=false; firstClick=true;
+  for(let r=0;r<SIZE;r++){board[r]=[]; for(let c=0;c<SIZE;c++) board[r][c]={mine:false,revealed:false,flag:false,adj:0}}
+  placeMines(-1,-1); calcNumbers(); renderBoard();
+}
+
+function placeMines(safeR,safeC){
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++) board[r][c].mine=false;
+  let placed=0;
+  while(placed<MINES){
+    let r=Math.floor(Math.random()*SIZE), c=Math.floor(Math.random()*SIZE);
+    // no poner mina cerca del primer click
+    if(Math.abs(r-safeR)<=1 && Math.abs(c-safeC)<=1) continue;
+    if(!board[r][c].mine){board[r][c].mine=true; placed++}
+  }
+}
+
+function calcNumbers(){
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+    if(board[r][c].mine) continue;
+    let count=0;
+    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+      let nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&board[nr][nc].mine) count++;
+    }
+    board[r][c].adj=count;
+  }
+}
+
+function renderBoard(){
+  boardEl.innerHTML='';
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+    let div=document.createElement('div'); div.className='cell';
+    div.dataset.r=r; div.dataset.c=c;
+    div.addEventListener('click',()=>reveal(r,c));
+    div.addEventListener('contextmenu',e=>{e.preventDefault(); flag(r,c)});
+    boardEl.appendChild(div);
+  }
+  updateUI();
+}
+
+function updateUI(){
+  document.querySelectorAll('.cell').forEach(el=>{
+    let r=el.dataset.r,c=el.dataset.c, cell=board[r][c];
+    el.textContent=''; el.className='cell';
+    if(cell.flag){el.textContent='🚩'; el.style.background='#4ade80'; return}
+    if(!cell.revealed) return;
+    el.classList.add('revealed');
+    if(cell.mine){el.textContent='🐉'; el.classList.add('mine')}
+    else if(cell.adj>0){el.textContent=cell.adj; el.classList.add('n'+cell.adj)}
+  });
+  document.getElementById('count').textContent=MINES - board.flat().filter(x=>x.flag).length;
+}
+
+function reveal(r,c){
+  if(gameOver) return;
+  if(firstClick){
+    placeMines(r,c); calcNumbers(); firstClick=false;
+  }
+  let cell=board[r][c];
+  if(cell.revealed||cell.flag) return;
+  cell.revealed=true;
+  if(cell.mine){
+    gameOver=true; board.flat().forEach(x=>{if(x.mine)x.revealed=true}); updateUI();
+    setTimeout(()=>{alert('💥 Te comió Shenlong culiau!'); init();},100); return;
+  }
+  if(cell.adj===0){
+    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+      let nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE) if(!board[nr][nc].revealed) reveal(nr,nc);
+    }
+  }
+  updateUI();
+  if(board.flat().every(x=>x.mine||x.revealed)){gameOver=true; setTimeout(()=>{alert('GANASTE CULIAU! Juntaste las 7 esferas!'); init();},100)}
+}
+
+function flag(r,c){
+  if(gameOver||firstClick) return;
+  let cell=board[r][c];
+  if(cell.revealed) return;
+  cell.flag=!cell.flag; updateUI();
+}
+
+init();
+</script>
+</body>
+</html>
