@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1>Goku vs Piccolo Dai Maku</h1>
+<button onclick="iniciarBatalla()">INICIAR BATALLA</button>
+<pre id="log"></pre>
+
+<script>
+let goku = {
+  nombre: "Goku Niño",
+  vida: 100,
+  tecnica: "Kamehameha",
+  atacar: function(enemigo) {
+    let daño = Math.floor(Math.random() * 20) + 15;
+    log(`💥 ${this.nombre} ataca con ${this.tecnica}! -${daño} daño`);
+    enemigo.vida -= daño;
+    log(`❤️ Vida de ${enemigo.nombre}: ${enemigo.vida}`);
+  }
+};
+
+let piccolo = {
+  nombre: "Piccolo Dai Maku",
+  vida: 120,
+  tecnica: "Makosen",
+  atacar: function(enemigo) {
+    let daño = Math.floor(Math.random() * 25) + 10;
+    log(`💥 ${this.nombre} ataca con ${this.tecnica}! -${daño} daño`);
+    enemigo.vida -= daño;
+    log(`❤️ Vida de ${enemigo.nombre}: ${enemigo.vida}`);
+  }
+};
+
+function log(texto){
+  document.getElementById("log").innerText += texto + "\n";
+}
+
+function iniciarBatalla(){
+  document.getElementById("log").innerText = "";
+  goku.vida = 100;
+  piccolo.vida = 120;
+  
+  log("=== COMIENZA LA BATALLA ===");
+  log(JSON.stringify(goku, null, 2));
+  log(JSON.stringify(piccolo, null, 2));
+  log("");
+
+  while(goku.vida > 0 && piccolo.vida > 0){
+    goku.atacar(piccolo);
+    if(piccolo.vida <= 0) break;
+    piccolo.atacar(goku);
+    log("---");
+  }
+
+  if(goku.vida > 0) log("\n🏆 GANA GOKU!");
+  else log("\n🏆 GANA PICCOLO DAI MAKU!");
+}
+</script>
+</body>
+</html>
